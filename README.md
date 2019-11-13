@@ -1,8 +1,3 @@
-Follow official docker rails guide
-https://docs.docker.com/compose/rails/
-
-And also check https://github.com/rails/webpacker/blob/master/docs/docker.md
-
 ## Step1
 ```bash
 mkdir rails6-docker-starter
@@ -97,6 +92,38 @@ services:
       - '3035:3035'
 ```
 
+`config/webpacker.yml`
+```yml hl_lines="11"
+development:
+  <<: *default
+  compile: true
+
+  # Verifies that correct packages and versions are installed by inspecting package.json, yarn.lock, and node_modules
+  check_yarn_integrity: true
+
+  # Reference: https://webpack.js.org/configuration/dev-server/
+  dev_server:
+    https: false
+    host: webpacker
+    port: 3035
+    public: localhost:3035
+    hmr: false
+    # Inline should be set to true if using HMR
+    inline: true
+    overlay: true
+    compress: true
+    disable_host_check: true
+    use_local_ip: false
+    quiet: false
+    headers:
+      'Access-Control-Allow-Origin': '*'
+    watch_options:
+      ignored: '**/node_modules/**'
+
+```
+
+
+
 `env.docker`
 ```
 NODE_ENV=development
@@ -159,6 +186,46 @@ And
 visit
 
 http://localhost:3000/
+
+
+## Step 11
+For database admin like pg_admin, postico...
+https://hub.docker.com/_/postgres
+
+```yml hl_lines="10 11 12 13 14"
+version: '3'
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  webpacker:
+    build: .
+    env_file:
+      - '.env.docker'
+    command: ./bin/webpack-dev-server
+    volumes:
+      - .:/myapp
+    ports:
+      - '3035:3035'
+```
 
 
 ## Refs
