@@ -227,6 +227,25 @@ services:
       - '3035:3035'
 ```
 
+`database.yml`
+```yml hl_lines="6"
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: db
+  username: postgres
+  password: example
+  pool: 5
+
+development:
+  <<: *default
+  database: myapp_development
+
+test:
+  <<: *default
+  database: myapp_test
+```
+
 
 ## Refs
 https://docs.docker.com/compose/rails/
